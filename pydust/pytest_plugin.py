@@ -20,14 +20,13 @@ import sys
 import tempfile
 
 import pytest
-from pydantic import BaseModel
 
 from pydust import buildzig, config
 
 pydust_conf = config.load()
 
 
-def pytest_addoption(parser, pluginmanager):
+def pytest_addoption(parser: pytest.Parser, pluginmanager) -> None:
     """Register Pytest command line options."""
     group = parser.getgroup("ziggy pydust")
     group.addoption(
@@ -38,7 +37,7 @@ def pytest_addoption(parser, pluginmanager):
     )
 
 
-def pytest_collection(session):
+def pytest_collection(session: pytest.Session) -> None:
     """Setup the testing environment for Pydust.
 
     * Invoke a `zig build install` to generate the Python extension modules (used by Python tests)
@@ -50,7 +49,7 @@ def pytest_collection(session):
         buildzig.zig_build(["pydust-test-build", f"-Doptimize={optimize}", f"-Dpython-exe={sys.executable}"])
 
 
-def pytest_collect_file(file_path, path, parent):
+def pytest_collect_file(file_path, path, parent) -> "ZigFile | None":
     """Grab any Zig roots for PyTest collection."""
     if not config.load().zig_tests:
         return None
@@ -59,6 +58,8 @@ def pytest_collect_file(file_path, path, parent):
         for ext_module in pydust_conf.ext_modules:
             if ext_module.root.absolute() == file_path.absolute():
                 return ZigFile.from_parent(parent, path=file_path)
+
+    return None
 
 
 class ZigFile(pytest.File):
@@ -237,11 +238,12 @@ class TestProtocol:
         # Body is a TestResults
         test_results = 5
 
-    class Header(BaseModel):
-        tag: int
-        bytes_len: int = 0
+    class Header:
+        def __init__(self, *, tag: int, bytes_len: int = 0) -> None:
+            self.tag = tag
+            self.bytes_len = bytes_len
 
-        def pack(self):
+        def pack(self) -> bytes:
             return struct.pack("<II", self.tag, self.bytes_len)
 
         @classmethod

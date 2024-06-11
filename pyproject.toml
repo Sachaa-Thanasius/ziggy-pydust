@@ -15,7 +15,6 @@ pydust = "pydust.pytest_plugin"
 [tool.poetry.dependencies]
 python = "^3.11"
 ziglang = "^0.11.0"
-pydantic = "^2.3.0"
 setuptools = "^69.0.0"
 black = "^23.9.1"
 
